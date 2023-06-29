@@ -7,47 +7,73 @@
 #include <vector>
 #include <ctime>
 
-int Asgl[1000000] = { rand() };
-
 int main()
 {
     setlocale(LC_ALL, "rus");
     std::cout << omp_get_num_procs() << "\n";
-    omp_set_num_threads(32);
-    std::vector<int> Asgl(100000000);
-    std::vector<double> Adbl(100000000);
-    for (int i = 0; i < Asgl.size(); ++i) {
-        Asgl[i] = rand();
-        Adbl[i] = rand();
+    //omp_set_num_threads(8);
+    const int n = 300;
+    std::vector<std::vector<int>> Bsgl(n, std::vector<int>(n));
+    std::vector<std::vector<double>> Bdbl(n, std::vector<double>(n));
+    std::vector<std::vector<int>> Csgl(n, std::vector<int>(n));
+    std::vector<std::vector<double>> Cdbl(n, std::vector<double>(n));
+    std::vector<std::vector<int>> Dsgl(n, std::vector<int>(n));
+    std::vector<std::vector<double>> Ddbl(n, std::vector<double>(n));
+    for (int i = 0; i < Bsgl.size(); ++i) {
+        for (int j = 0; j < Bsgl.size(); j++) {
+            Bsgl[i][j] = rand();
+            Bdbl[i][j] = rand() / 10.;
+            Csgl[i][j] = rand();
+            Cdbl[i][j] = rand() / 10.;
+        }
     }
     unsigned int st = clock();
-    int Asgl_sum = 0;
-    double Adbl_sum = 0;
-    for (auto x : Asgl)
-        Asgl_sum += x;
+    for (int row = 0; row < Bsgl.size(); ++row) {
+        for (int col = 0; col < Bsgl.size(); ++col) {
+            for (int i = 0; i < Bsgl.size(); ++i) {
+                Dsgl[row][col] += Bsgl[row][i] * Csgl[row][i];
+            }
+        }
+    }
     unsigned int et = clock();
-    std::cout << "Asgl_sum time = " << et - st << "\n";
+    std::cout << "Bsgl * Csgl posled time = " << et - st << "\n";
     st = clock();
-    for (auto x : Adbl)
-        Adbl_sum += x;
-    et = clock();
-    std::cout << "Adbl_sum time = " << et - st << "\n";
-    Asgl_sum = 0;
-    Adbl_sum = 0;
-    st = clock();
-#pragma omp parallel for reduction(+: Asgl_sum)
-    for (int i = 0; i < Asgl.size(); ++i) {
-        Asgl_sum += Asgl[i];
+    for (int row = 0; row < Bdbl.size(); ++row) {
+        for (int col = 0; col < Bdbl.size(); ++col) {
+            for (int i = 0; i < Bdbl.size(); ++i) {
+                Ddbl[row][col] += Bdbl[row][i] * Cdbl[i][col];
+            }
+        }
     }
     et = clock();
-    std::cout << "Prl asgl time = " << et - st << "\n";
+    std::cout << "Bdbl * Cdbl posled time = " << et - st << "\n";
     st = clock();
-#pragma omp parallel for reduction(+: Adbl_sum)
-    for (int i = 0; i < Adbl.size(); ++i) {
-        Adbl_sum += Adbl[i];
+    double el;
+#pragma omp parallel for reduction(*: el)
+    for (int row = 0; row < Bsgl.size(); ++row) {
+        for (int col = 0; col < Bsgl.size(); ++col) {
+            el = 0;
+            for (int i = 0; i < Bsgl.size(); ++i) {
+                el += Bsgl[row][i] * Csgl[i][col];
+            }
+            Dsgl[row][col] = el;
+        }
     }
     et = clock();
-    std::cout << "Prl adbl time = " << et - st << "\n";
+    std::cout << "Bsgl * Csgl paral time = " << et - st << "\n";
+    st = clock();
+#pragma omp parallel for reduction(*: el)
+    for (int row = 0; row < Bdbl.size(); ++row) {
+        for (int col = 0; col < Bdbl.size(); ++col) {
+            el = 0;
+            for (int i = 0; i < Bdbl.size(); ++i) {
+                el += Bdbl[row][i] * Cdbl[i][col];
+            }
+            Ddbl[row][col] = el;
+        }
+    }
+    et = clock();
+    std::cout << "Bdbl * Cdbl paral time = " << et - st << "\n";
 }
 
 // Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
