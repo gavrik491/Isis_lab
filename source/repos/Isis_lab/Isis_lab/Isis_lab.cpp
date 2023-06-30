@@ -11,7 +11,7 @@ int main()
 {
     setlocale(LC_ALL, "rus");
     std::cout << omp_get_num_procs() << "\n";
-    //omp_set_num_threads(8);
+    omp_set_num_threads(32);
     const int n = 300;
     std::vector<std::vector<int>> Bsgl(n, std::vector<int>(n));
     std::vector<std::vector<double>> Bdbl(n, std::vector<double>(n));
@@ -48,8 +48,8 @@ int main()
     et = clock();
     std::cout << "Bdbl * Cdbl posled time = " << et - st << "\n";
     st = clock();
-    double el;
-#pragma omp parallel for reduction(*: el)
+    double el = 0;
+#pragma omp parallel for reduction(+: el)
     for (int row = 0; row < Bsgl.size(); ++row) {
         for (int col = 0; col < Bsgl.size(); ++col) {
             el = 0;
@@ -62,7 +62,7 @@ int main()
     et = clock();
     std::cout << "Bsgl * Csgl paral time = " << et - st << "\n";
     st = clock();
-#pragma omp parallel for reduction(*: el)
+#pragma omp parallel for reduction(+: el)
     for (int row = 0; row < Bdbl.size(); ++row) {
         for (int col = 0; col < Bdbl.size(); ++col) {
             el = 0;

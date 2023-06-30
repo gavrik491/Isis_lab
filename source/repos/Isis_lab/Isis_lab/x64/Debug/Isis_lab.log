@@ -1,2 +1,7 @@
 ﻿  Isis_lab.cpp
+C:\Users\gavri\source\repos\Isis_lab\Isis_lab\Isis_lab.cpp(59,30): warning C4244: =: преобразование "double" в "_Ty", возможна потеря данных
+          with
+          [
+              _Ty=int
+          ]
   Isis_lab.vcxproj -> C:\Users\gavri\source\repos\Isis_lab\x64\Debug\Isis_lab.exe
